@@ -1,0 +1,14 @@
+.BaseLayout {
+  &__header {
+    h1 {
+      color: whitesmoke;
+    }
+  }
+  &__content {
+    background: #FAFAFA;
+    padding: 24px;
+    margin: 0;
+    height: calc(100vh - 134px);
+    overflow-y: scroll;
+  }
+}
