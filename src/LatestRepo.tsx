@@ -3,14 +3,22 @@ import moment from 'moment';
 import {useQuery} from '@apollo/client';
 import {Row, Col, Empty} from 'antd';
 import {Table} from 'antd';
+import {Breakpoint} from "antd/es/_util/responsiveObserve";
+import {TablePaginationConfig} from "antd/es/table";
 import Loader from "./Loader";
 import SearchInput from "./SearchInput";
 import DropdownSelect from "./DropdownSelect";
-import {Repository} from './types';
+import {Repository, QueryVariables, PaginationValue} from './types';
 import {GET_REPOSITORIES, GET_LICENSES} from './query';
-import {Breakpoint} from "antd/es/_util/responsiveObserve";
 
 const DEFAULT_COUNT = 10;
+
+interface TableProps {
+  items: Array<Repository>;
+  total?: Number;
+  currentPage?: Number;
+  onPaginationChange?: (page: Number, pageSize: Number) => void;
+}
 
 const columns = [
   {
@@ -78,9 +86,18 @@ function empty() {
   return <div className="Loader"><Empty/></div>;
 }
 
-function table(items: Array<Repository> = []) {
-  return <Table columns={columns} dataSource={convertNodes(items)}
-                pagination={{position: ['topLeft', 'bottomRight']}}/>;
+function table(props: TableProps) {
+  const paginationParams = {
+    current: props.currentPage,
+    position: ['topLeft', 'bottomRight'],
+    defaultPageSize: 10,
+    total: props.total || 0,
+    responsive: true,
+    simple: true,
+    onChange: props.onPaginationChange,
+  } as TablePaginationConfig;
+
+  return <Table columns={columns} dataSource={convertNodes(props.items)} pagination={paginationParams}/>;
 }
 
 function getQueryBy(params: { search?: string, license?: string }) {
@@ -101,24 +118,41 @@ function getQueryBy(params: { search?: string, license?: string }) {
 function LatestRepo() {
   const [search, setSearch] = useState('');
   const [license, setLicense] = useState('');
+  const [pagination, setPagination] = useState<PaginationValue>({current: 1, previous: 1});
   const [query, setQuery] = useState(getQueryBy({}));
 
   const {loading: licensesLoading, data: licensesData} = useQuery(GET_LICENSES);
-  const {loading, error, data, refetch} = useQuery(GET_REPOSITORIES, {
+  const {loading, error, data, refetch} = useQuery<any, QueryVariables>(GET_REPOSITORIES, {
     variables: {
       query,
       first: DEFAULT_COUNT,
     },
+    notifyOnNetworkStatusChange: true,
   });
   const repoItems = data?.search?.nodes || [];
+  const repositoryCount = data?.search?.repositoryCount || 0;
+  const pageInfo = data?.search?.pageInfo || {};
 
   useEffect(() => setQuery(getQueryBy({search, license})), [search, license]);
   useEffect(() => {
-    refetch({query, first: DEFAULT_COUNT});
+    refetch({query, first: DEFAULT_COUNT, last: undefined, after: undefined, before: undefined});
+    setPagination({current: 1, previous: 1});
   }, [query, refetch]);
 
   const handleSearch = useCallback((value: string) => setSearch(value), []);
   const handleSelect = useCallback((value: string) => setLicense(value), []);
+  const handlePaginationChange = useCallback((page: Number, pageSize: Number) => {
+    const variables: QueryVariables = {query, first: undefined, last: undefined, after: undefined, before: undefined};
+    if (page > pagination.current) {
+      variables.first = DEFAULT_COUNT;
+      variables.after = pageInfo.endCursor;
+    } else {
+      variables.last = DEFAULT_COUNT;
+      variables.before = pageInfo.startCursor;
+    }
+    refetch(variables);
+    setPagination({current: page, previous: pagination.current});
+  }, [pagination, query, pageInfo, refetch]);
 
   return (
     <>
@@ -132,7 +166,7 @@ function LatestRepo() {
       </Row>
       <Row>
         <Col span={24}>
-          {!error && repoItems.length > 0 && table(repoItems)}
+          {!error && repoItems.length > 0 && table({items: repoItems, total: repositoryCount, currentPage: pagination.current, onPaginationChange: handlePaginationChange})}
           {!error && !loading && repoItems.length === 0 && empty()}
           {error && errorBlock(error)}
           {loading && <Loader/>}
