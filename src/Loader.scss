@@ -1,7 +1,11 @@
 .Loader {
+  position: absolute;
+  left: 0;
+  top: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  height: calc(100vh - 206px);
   width: 100%;
+  background: rgba(255, 255, 255, .8);
 }

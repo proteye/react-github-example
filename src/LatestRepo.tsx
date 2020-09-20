@@ -4,19 +4,12 @@ import {useQuery} from '@apollo/client';
 import {Row, Col, Empty} from 'antd';
 import {Table} from 'antd';
 import Loader from "./Loader";
-import { GET_REPOSITORIES/*, GET_LICENSES*/ } from './query';
+import SearchInput from "./SearchInput";
+import DropdownSelect from "./DropdownSelect";
+import {Repository} from './types';
+import {GET_REPOSITORIES, GET_LICENSES} from './query';
 
 const DEFAULT_COUNT = 10;
-
-interface Repository {
-  key: string;
-  id: string;
-  name: string;
-  owner: {login: string};
-  licenseInfo: {name: string},
-  stargazers: {totalCount: string},
-  description: string;
-}
 
 const columns = [
   // {
@@ -60,6 +53,7 @@ const columns = [
     title: 'Stars',
     dataIndex: 'stars',
     key: 'stars',
+    render: (text: string) => <span>{text}&nbsp;★</span>,
   },
 ];
 
@@ -87,11 +81,8 @@ function table(items: Array<Repository> = []) {
                 pagination={{position: ['topLeft', 'bottomRight']}}/>;
 }
 
-// function licensesDropdown() {
-// }
-
 function LatestRepo() {
-  // const { loading: licensesLoading, data: licensesData } = useQuery(GET_LICENSES);
+  const { loading: licensesLoading, data: licensesData } = useQuery(GET_LICENSES);
   const {loading, error, data} = useQuery(GET_REPOSITORIES, {
     variables: {
       query: 'language: Javascript',
@@ -99,23 +90,27 @@ function LatestRepo() {
     },
   });
 
-  if (loading) {
-    return <Loader/>;
-  }
-
   const items = data?.search?.nodes || [];
 
-  if (!error && !items.length) {
-    return empty();
-  }
-
   return (
-    <Row>
-      <Col span={24}>
-        {!error && table(items)}
-        {error && errorBlock(error)}
-      </Col>
-    </Row>
+    <>
+      <Row gutter={[8, 8]}>
+        <Col span={12} xs={24} sm={12}>
+          <SearchInput loading={loading} onSearch={(v) => console.log('v', v)}/>
+        </Col>
+        <Col span={6} xs={{ span: 24, offset: 0 }} sm={{ span: 6, offset: 6 }} offset={6}>
+          <DropdownSelect loading={licensesLoading} items={licensesData?.licenses} onChange={(v) => console.log('v', v)}/>
+        </Col>
+      </Row>
+      <Row>
+        <Col span={24}>
+          {!error && items.length > 0 && table(items)}
+          {!error && items.length === 0 && empty()}
+          {error && errorBlock(error)}
+          {loading && <Loader/>}
+        </Col>
+      </Row>
+    </>
   );
 }
 
