@@ -13,7 +13,7 @@ type Props = {
 function DropdownSelect(props: Props) {
   return (
     <Select onChange={props.onChange} loading={props.loading} placeholder="Filter by license" size="large" style={{ width: '100%' }} allowClear>
-      {props.items?.map((item) => <Option value={item.key}>{item.name}</Option>)}
+      {props.items?.map((item) => <Option key={item.id} value={item.key}>{item.name}</Option>)}
     </Select>
   );
 }
