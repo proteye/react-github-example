@@ -1,3 +1,5 @@
+@import '~antd/dist/antd.css';
+
 .App {
   text-align: center;
 }
@@ -26,6 +28,20 @@
 
 .App-link {
   color: #61dafb;
+}
+
+.App-shrink-text {
+  white-space: nowrap;
+  overflow: hidden;
+  padding: 5px;
+  text-overflow: ellipsis;
+  width: 150px;
+}
+
+.ant-pagination-simple-pager {
+  input {
+    pointer-events: none;
+  }
 }
 
 @keyframes App-logo-spin {
