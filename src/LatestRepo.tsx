@@ -11,7 +11,7 @@ import DropdownSelect from "./DropdownSelect";
 import {Repository, QueryVariables, PaginationValue} from './types';
 import {GET_REPOSITORIES, GET_LICENSES} from './query';
 
-const DEFAULT_COUNT = 10;
+export const DEFAULT_COUNT = 10;
 
 interface TableProps {
   items: Array<Repository>;
@@ -166,7 +166,12 @@ function LatestRepo() {
       </Row>
       <Row>
         <Col span={24}>
-          {!error && repoItems.length > 0 && table({items: repoItems, total: repositoryCount, currentPage: pagination.current, onPaginationChange: handlePaginationChange})}
+          {!error && repoItems.length > 0 && table({
+            items: repoItems,
+            total: repositoryCount,
+            currentPage: pagination.current,
+            onPaginationChange: handlePaginationChange
+          })}
           {!error && !loading && repoItems.length === 0 && empty()}
           {error && errorBlock(error)}
           {loading && <Loader/>}

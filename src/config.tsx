@@ -1,4 +1,4 @@
 export default {
     serverUri: 'https://api.github.com/graphql',
-    token: '90367f7b286b671724953d684c3d99fd26029cf9',
+    token: 'dd3d001a7c008350d12166baab0b641bb0010213',
 };

@@ -4,7 +4,7 @@ import './Loader.scss';
 
 function Loader() {
   return (
-    <div className="Loader">
+    <div className="Loader" data-testid="loader">
       <Space size="large">
         <Spin size="large"/>
       </Space>
